@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+    <!-- web controllers -->
+   <bean id="errorCtrl" class="com.word.server.web.ErrorController" />
+   <bean id="abstractCtrl" abstract="true" />
+   
+   <bean id="wordCtrl" class="com.word.server.web.WordController" parent="abstractCtrl" />
+   
+   <!-- configurations --> 
+   <bean id="handlerMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+    	<property name="alwaysUseFullPath" value="true"/>
+        <property name="interceptors">
+            <list>
+                <ref bean="analyzerLogInterceptor"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="handlerAdapter" class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+    	<property name="alwaysUseFullPath" value="true"/>
+    </bean>
+
+	<bean id="analyzerLogInterceptor" class = "com.word.server.web.AnalyzerInterceptor" />
+    <!--Definition of View Resolver -->
+    <bean id="beanNameResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver"/>
+
+	<bean name="jsonView" class="com.word.server.web.JSONView"/>
+<!--  
+    <bean id="viewResolver"
+        class="org.springframework.web.servlet.view.velocity.VelocityViewResolver">
+        <property name="cache" value="true" />
+        <property name="prefix" value="" />
+        <property name="suffix" value=".vm" />
+        <property name="contentType">
+            <value>text/html; charset=UTF-8</value>
+        </property>
+        <property name="toolboxConfigLocation" value="/WEB-INF/toolbox.xml"/>
+    </bean>
+    <bean id="velocityConfig"
+        class="org.springframework.web.servlet.view.velocity.VelocityConfigurer">
+        <property name="resourceLoaderPath" value="/WEB-INF/vm/" />
+        <property name="velocityPropertiesMap">
+            <props>
+                <prop key="input.encoding">UTF-8</prop>
+                <prop key="output.encoding">UTF-8</prop>
+                <prop key="velocimacro.library"></prop>
+                <prop key="velocimacro.library.autoreload">true</prop>
+                <prop key="directive.foreach.counter.name">loopCursor</prop>
+                <prop key="directive.foreach.counter.initial.value">0</prop>
+            </props>
+        </property>
+    </bean>
+    -->
+</beans>
