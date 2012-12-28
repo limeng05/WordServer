@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    
+<project xmlns:name="words" name="ws" default="build">
+	
+    <property file="./default.properties"/>
+
+    <!-- Clean built files. -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete file="${final.name}.jar"/>
+        <delete includeemptydirs="true">
+            <fileset dir="${lib.dir}" includes="**/*" excludes="**/.svn/*" />
+        </delete>
+    </target>
+
+	<!-- Prepare the deployment environment configuration -->
+	<target name="prepare">
+		<echo message="Prepare deployment configuration" />
+		<copy todir="${build.webapps}" overwrite="true">
+			<fileset dir="${web.src.dir}" excludes="**/.svn/*" />
+		</copy>
+		<delete file="${build.webapps}/WEB-INF/ws-servlet.xml.*"/>
+		<delete file="${build.webapps}/WEB-INF/web.xml.*"/>
+		<move file="${build.webapps}/WEB-INF/ws-servlet.xml"
+					tofile="${build.webapps}/WEB-INF/ws-servlet.xml"/>
+		<move file="${build.webapps}/index.html"
+					tofile="${build.webapps}/index.html"/>
+		
+        <!-- Copy configuration files -->
+		<mkdir dir="${build.webapps}/WEB-INF/conf" />
+        <copy todir="${build.webapps}/WEB-INF/conf" overwrite="true">
+            <fileset dir="${conf.dir}" />
+        </copy>
+        <move todir="${build.webapps}/WEB-INF/conf" overwrite="true">
+            <fileset dir="${build.webapps}/WEB-INF/conf" includes="**/*"/>
+            <mapper type="glob" from="*" to="*"/>
+        </move>
+	</target>
+
+    <!-- ================================================================== -->
+    <!-- Make war file                                                      -->
+    <!-- ================================================================== -->
+    <target name="war" depends="jar, prepare">
+        <mkdir dir="${build.webapps}/WEB-INF/conf" />
+        <war destfile="${build.dir}/${name}.war" webxml="${build.webapps}/WEB-INF/web.xml">
+        <fileset dir="${build.webapps}" >
+        	<exclude name="**/web.xml" />
+        </fileset>
+            <lib dir="${lib.dir}">
+                <exclude name="*-src.zip" />
+                <exclude name="*-src.jar" />
+                <exclude name="*.src.zip" />
+                <exclude name="*.src.jar" />
+            </lib>
+            <lib dir="${build.dir}">
+                <include name="${final.name}.jar"/>
+            </lib>
+        </war>
+    </target>
+
+	<path id="project.classpath">
+        <pathelement location="${build.classes}"/>
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement location="${conf.dir}"/>
+    </path>
+    <path id="test.classpath">
+        <pathelement location="${test.build.classes}"/>
+        <path refid="project.classpath"/>
+    </path>
+
+
+    <!-- Initialization -->
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+    </target>
+	    
+    <!-- Build the project. -->
+    <target name="build" depends="init">
+        <mkdir dir="${build.classes}"/>
+        <javac
+          encoding="${build.encoding}"
+          srcdir="${src.dir}"
+          includes="**/*.java"
+          destdir="${build.classes}"
+          debug="${debug}"
+          optimize="${optimize}"
+          deprecation="${deprecation}">
+            <classpath refid="project.classpath"/>
+        </javac>
+        <copy todir="${build.classes}">
+             <fileset dir="${src.dir}">
+                 <exclude name="**/*.java" />
+                 <exclude name="**/*.bak" />
+                 <exclude name="**/~*" />
+                 <exclude name="**/.svn/**" />
+             </fileset>
+	     </copy>
+    </target>
+
+    <!-- Make jar file -->
+    <target name="jar" depends="build">
+        <mkdir dir="${build.classes}/META-INF"/>
+        <jar destfile="${build.dir}/${final.name}.jar" basedir="${build.classes}"/>
+        <zip destfile="${build.dir}/${final.name}-src.zip">
+            <fileset dir="src" excludes="**/.svn"/>
+        </zip>
+    </target>
+
+    <target name="dist" depends="build, javadoc">
+        <mkdir dir="${dist.dir}" />
+        <jar destfile="${dist.dir}/${project}-${version}.jar">
+            <fileset dir="${build.dir}" id="id" >
+            </fileset>
+        </jar>
+
+        <zip destfile="${dist.dir}/${project}-${version}-src.zip">
+            <zipfileset dir="${src.dir}" prefix="${project}/src" excludes="**/.svn/*" />
+            <zipfileset dir="${lib.dir}" prefix="${project}/lib" excludes="**/.svn" />
+            <zipfileset dir="${javadoc.dir}" prefix="${project}/javadoc" excludes="**/.svn" />
+            <zipfileset file="${dist.dir}/${project}-${version}.jar" prefix="${project}" />
+            <zipfileset file="README.txt" prefix="${project}" />
+        </zip>
+    </target>
+
+    <!-- ================================================================== -->
+    <!-- Documentation                                                      -->
+    <!-- ================================================================== -->
+    <target name="javadoc" depends="build">
+        <mkdir dir="${build.javadoc}"/>
+        <javadoc
+         overview="${src.dir}/overview.html"
+         destdir="${build.javadoc}"
+         author="true"
+         version="true"
+         use="true"
+         windowtitle="${Name} ${version} API"
+         doctitle="${Name} ${version} API"
+        >
+            <packageset dir="${src.dir}"/>
+            <classpath refid="project.classpath"/>
+            <header>
+                <![CDATA[<meta http-equiv="Content-Type" content="text/html;charset=utf-8">]]>
+            </header>
+        </javadoc>
+    </target>
+</project>
