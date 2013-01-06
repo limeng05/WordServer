@@ -30,8 +30,9 @@ public class MongoWordStore implements IWordStore {
         String password = ServerConfig.getMongoPassword();
         try {
             MongoClient mongoClient = new MongoClient(host);
+            DB admin = mongoClient.getDB("admin");
+            admin.authenticate(user, password.toCharArray());
             DB db = mongoClient.getDB("crazyword");
-            db.authenticate(user, password.toCharArray());
             coll = db.getCollection("words");
         } catch (UnknownHostException e) {
             throw new WordException("unknown host!", e,
