@@ -33,9 +33,12 @@ public class MongoIndexStore implements IIndexStore {
     
     public MongoIndexStore() throws WordException {
         String host = ServerConfig.getMongoServer();
+        String user = ServerConfig.getMongoUser();
+        String password = ServerConfig.getMongoPassword();
         try {
             MongoClient mongoClient = new MongoClient(host);
             DB db = mongoClient.getDB("crazyword");
+            db.authenticate(user, password.toCharArray());
             coll = db.getCollection("index");
         } catch (UnknownHostException e) {
             throw new WordException("unknown host!", e,
